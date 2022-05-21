@@ -2,6 +2,11 @@
 #include <algorithm>
 #include <vector>
 #include <queue>
+#include <fstream>
+#include <sstream>
+#include <cstring>
+#include <cstdlib>
+#include <ctime>
 using namespace std;
 
 const int MAXN = 1e7;
@@ -194,22 +199,38 @@ int build(int l, int r, int now)
 
 int main()
 {
-    cout << "请输入坐标点个数N :\n";
-    int n;
-    cin >> n;
-    dis_list.resize(n);
-    for (int i = 0; i < n; ++i)
+    cout << "请输保序加密A,B的值:\n";
+    int a, b;
+    cin >> a >> b;
+    ifstream file("NE.txt");
+    string line;
+    int cnt = 0;
+    while (getline(file, line, '\n'))
     {
-        for (int j = 0; j < D; ++j)
-        {
-            cin >> Tree[i].pos[j];
-        }
+        char *end, *tmp;
+        const char *ch = line.c_str();
+        double f = strtod(ch, &end);
+        tmp = end;
+        long long x = (long long)(f * 1000000 * a + b + rand() % (a - 1) + 0.5);
+        Tree[cnt].pos[0] = x;
+        f = strtod(tmp, &end);
+        x = (long long)(f * 1000000 * a + b + rand() % (a - 1) + 0.5);
+        Tree[cnt].pos[1] = x;
+        ++cnt;
     }
+    cout << "finished: " << cnt << endl;
+    file.close();
+
+    dis_list.resize(cnt);
+
     cout << "请输入近邻点个数K :\n";
     cin >> K;
     cout << "请输入目标坐标: \n";
-    cin >> cur[0] >> cur[1];
-    root = build(0, n - 1, 0);
+    double t1, t2;
+    cin >> t1 >> t2;
+    cur[0] = t1 * 1000000 * a + b + rand() % (a - 1);
+    cur[1] = t2 * 1000000 * a + b + rand() % (a - 1);
+    root = build(0, cnt - 1, 0);
     cout << "根结点为: " << root << endl;
     queryMinDis(root);
     // for (int i = 0; i < K; ++i)
@@ -220,8 +241,9 @@ int main()
     int j = 0;
     while (Q.size())
     {
-        cout << "第" << j + 1 << "邻点: " << Tree[Q.top().first].pos[0] << " " << Tree[Q.top().first].pos[1] << " " << Q.top().second << endl;
+        cout << "第" << j + 1 << "邻点: " << (Tree[Q.top().first].pos[0] - b) * 1.0 / (1000000 * a) << " " << (Tree[Q.top().first].pos[1] - b) * 1.0 / (1000000 * a) << " " << Q.top().second << endl;
         Q.pop();
+        ++j;
     }
     return 0;
 }
