@@ -9,7 +9,16 @@ const int D = 2;
 const int INF = 0x3f3f3f;
 long long d, root, cur[D], K;
 vector<long long> dis_list;
-priority_queue<int> Q;
+
+struct cmp
+{
+    bool operator()(pair<int, long long> &a, pair<int, long long> &b)
+    {
+        return a.second < b.second;
+    }
+};
+
+priority_queue<pair<int, long long>, vector<pair<int, long long>>, cmp> Q;
 
 struct Node
 {
@@ -22,7 +31,7 @@ struct Node
             max_pos[i] = min_pos[i] = pos[i];
         }
     }
-} Tree[MAXN];
+} Tree[10];
 
 bool operator<(const Node &a, const Node &b)
 {
@@ -57,25 +66,101 @@ void distance(int id)
 
 long long subdistance(int id)
 {
-    long long dimension[D];
+    int flagA[D] = {0, 0}, flagB[D] = {0, 0}, flagE[D] = {0, 0};
     for (int i = 0; i < D; ++i)
     {
-        dimension[i] = min((Tree[id].min_pos[i] - cur[i]) * (Tree[id].min_pos[i] - cur[i]), (Tree[id].max_pos[i] - cur[i]) * (Tree[id].max_pos[i] - cur[i]));
+        if (Tree[id].min_pos[i] == Tree[id].max_pos[i])
+        {
+            flagE[i] = 1;
+        }
+        if (cur[i] < Tree[id].min_pos[i])
+        {
+            flagA[i] = -1;
+            flagB[i] = -1;
+        }
+        else if (cur[i] > Tree[id].max_pos[i])
+        {
+            flagA[i] = flagB[i] = 1;
+        }
+        else if (cur[i] >= Tree[id].min_pos[i] && cur[i] <= Tree[id].max_pos[i])
+        {
+            flagA[i] = 0;
+            flagB[i] = 0;
+        }
     }
-    return min(dimension[0], dimension[1]);
+    long long minPos[D];
+    if (!flagA[0] && !flagB[0] && !flagA[1] && !flagB[1])
+    {
+        return 0;
+    }
+    if (!flagE[0] && !flagE[1])
+    {
+        for (int i = 0; i < D; ++i)
+        {
+            if (flagA[i] && flagA[i] == flagB[i])
+            {
+                if (flagA[i] < 0)
+                {
+                    minPos[i] = Tree[id].min_pos[i];
+                }
+                else if (flagA[i] > 0)
+                {
+                    minPos[i] = Tree[id].max_pos[i];
+                }
+            }
+            else
+            {
+                minPos[i] = cur[i];
+            }
+        }
+    }
+    else
+    {
+        if (flagE[0] && flagE[1])
+        {
+            minPos[0] = cur[0];
+            minPos[1] = cur[1];
+        }
+        else if (flagE[0])
+        {
+            minPos[0] = Tree[id].min_pos[0];
+            if (cur[0] != Tree[id].min_pos[0])
+            {
+                minPos[1] = cur[1];
+            }
+            else
+            {
+                minPos[1] = abs(Tree[id].min_pos[1] - cur[1]) < abs(Tree[id].max_pos[1] - cur[1]) ? Tree[id].min_pos[1] : Tree[id].max_pos[1];
+            }
+        }
+        else if (flagE[1])
+        {
+            minPos[1] = Tree[id].min_pos[1];
+            if (cur[1] != Tree[id].min_pos[1])
+            {
+                minPos[0] = cur[0];
+            }
+            else
+            {
+                minPos[0] = abs(Tree[id].min_pos[0] - cur[0]) < abs(Tree[id].max_pos[0] - cur[0]) ? Tree[id].min_pos[0] : Tree[id].max_pos[0];
+            }
+        }
+    }
+    return (minPos[0] - cur[0]) * (minPos[0] - cur[0]) + (minPos[1] - cur[1]) * (minPos[1] - cur[1]);
 }
 
 void queryMinDis(int id)
 {
     distance(id);
+    pair<int, long long> p{id, dis_list[id]};
     if (Q.size() < K)
     {
-        Q.push(id);
+        Q.push(p);
     }
-    else if (dis_list[id] < dis_list[Q.top()])
+    else if (dis_list[id] < dis_list[Q.top().first])
     {
         Q.pop();
-        Q.push(id);
+        Q.push(p);
     }
     long long dl = subdistance(Tree[id].l);
     long long dr = subdistance(Tree[id].r);
@@ -104,7 +189,6 @@ int build(int l, int r, int now)
         Tree[mid].r = build(mid + 1, r, (now + 1) % D);
     }
     push_up(mid);
-    cout << "中间值" << Tree[mid].pos[0] << endl;
     return mid;
 }
 
@@ -128,6 +212,16 @@ int main()
     root = build(0, n - 1, 0);
     cout << "根结点为: " << root << endl;
     queryMinDis(root);
-    cout << "最近邻点: " << Tree[Q.top()].pos[0] << " " << Tree[Q.top()].pos[1] << endl;
+    // for (int i = 0; i < K; ++i)
+    // {
+    //     cout << "第" << i + 1 << "邻点: " << Tree[Q.top()].pos[0] << " " << Tree[Q.top()].pos[1] << endl;
+    //     Q.pop();
+    // }
+    int j = 0;
+    while (Q.size())
+    {
+        cout << "第" << j + 1 << "邻点: " << Tree[Q.top().first].pos[0] << " " << Tree[Q.top().first].pos[1] << " " << Q.top().second << endl;
+        Q.pop();
+    }
     return 0;
 }
