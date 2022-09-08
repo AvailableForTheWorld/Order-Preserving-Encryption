@@ -241,7 +241,7 @@ int main()
     int j = 0;
     while (Q.size())
     {
-        cout << "第" << j + 1 << "邻点: " << (Tree[Q.top().first].pos[0] - b) * 1.0 / (1000000 * a) << " " << (Tree[Q.top().first].pos[1] - b) * 1.0 / (1000000 * a) << " " << Q.top().second << endl;
+        cout << "第" << K - j << "邻点: " << (Tree[Q.top().first].pos[0] - b) * 1.0 / (1000000 * a) << " " << (Tree[Q.top().first].pos[1] - b) * 1.0 / (1000000 * a) << " " << Q.top().second << endl;
         Q.pop();
         ++j;
     }
